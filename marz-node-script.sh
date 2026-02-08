@@ -496,6 +496,30 @@ SSH_EOF
     fi
 fi
 
+# ======================== Установка Cloudflare WARP ========================
+log "==================== УСТАНОВКА CLOUDFLARE WARP ===================="
+log "Этап 5: Установка Cloudflare WARP..."
+
+wait_for_apt_lock
+
+curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/cloudflare-client.list
+
+apt update 2>&1 | while read -r line; do debug "$line"; done
+apt install cloudflare-warp -y 2>&1 | while read -r line; do debug "$line"; done || error "Ошибка при установке Cloudflare WARP"
+
+log "Настройка WARP..."
+warp-cli registration new || warning "Регистрация WARP могла не завершиться"
+warp-cli mode proxy
+warp-cli proxy port 40000
+warp-cli connect
+
+if warp-cli status | grep -q "Connected"; then
+    log "Cloudflare WARP успешно подключен (proxy на порту 40000)"
+else
+    warning "WARP установлен, но подключение может потребовать дополнительной настройки"
+fi
+
 log "Установка успешно завершена!"
 debug "Все компоненты установлены и настроены"
 read -p "Перезагрузить систему сейчас? (y/n): " reboot_now
