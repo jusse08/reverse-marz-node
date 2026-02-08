@@ -71,13 +71,6 @@ else
     INSTALL_SSH_KEY=false
 fi
 
-read -p "Установить CLI команду marzban-node? (y/n): " ans_marzban_cli
-if [[ $ans_marzban_cli =~ ^[Yy] ]]; then
-    INSTALL_MARZBAN_CLI=true
-else
-    INSTALL_MARZBAN_CLI=false
-fi
-
 if [[ $EUID -ne 0 ]]; then
    error "Этот скрипт должен быть запущен с правами root"
 fi
@@ -356,19 +349,6 @@ rm -f marzban-node.sh
 log "Ожидание завершения установки Marzban Node..."
 # Даем время установке завершиться
 sleep 15
-
-# Установка CLI команды marzban-node
-if $INSTALL_MARZBAN_CLI; then
-    log "Установка CLI команды marzban-node..."
-    bash -c "$(curl -sL https://github.com/Gozargah/Marzban-scripts/raw/master/marzban-node.sh)" @ install-script
-    if command -v marzban-node &> /dev/null; then
-        log "CLI команда marzban-node успешно установлена"
-    else
-        warning "Не удалось установить CLI команду marzban-node"
-    fi
-else
-    debug "Установка CLI команды marzban-node пропущена"
-fi
 
 # Убедимся, что Docker сервис запущен и работает
 log "Финальная проверка Docker сервиса..."
